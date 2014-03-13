@@ -3,7 +3,7 @@
 #import "TSLogging.h"
 #import "TSUtils.h"
 
-#define kTSVersion @"2.6.3"
+#define kTSVersion @"2.6"
 #define kTSEventUrlTemplate @"https://api.tapstream.com/%@/event/%@/"
 #define kTSHitUrlTemplate @"http://api.tapstream.com/%@/hit/%@.gif"
 #define kTSConversionUrlTemplate @"https://reporting.tapstream.com/v1/timelines/lookup?secret=%@&event_session=%@"
@@ -336,14 +336,14 @@
             [NSString stringWithFormat:kTSConversionUrlTemplate, secret, [platform loadUuid]], @"url",
             completion, @"completion",
             nil];
-        [NSTimer scheduledTimerWithTimeInterval:0 target:self selector:@selector(conversionCheck:) userInfo:args repeats:NO];
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            [self conversionCheck:args];
+        });
     }
 }
 
-- (void)conversionCheck:(NSTimer *)timer
+- (void)conversionCheck:(NSMutableDictionary *)args
 {
-    NSMutableDictionary *args = (NSMutableDictionary *)timer.userInfo;
-
     int tries = [[args objectForKey:@"tries"] intValue];
     tries++;
     [args setObject:[NSNumber numberWithInt:tries] forKey:@"tries"];
@@ -359,7 +359,9 @@
         if(error == nil && [regex numberOfMatchesInString:jsonString options:NSMatchingAnchored range:NSMakeRange(0, [jsonString length])] == 0)
         {
             void(^completion)(NSData *) = [args objectForKey:@"completion"];
-            completion(response.data);
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(response.data);
+            });
             return;
         }
     }
@@ -367,12 +369,17 @@
     if(tries >= kTSConversionPollCount)
     {
         void(^completion)(NSData *) = [args objectForKey:@"completion"];
-        completion(nil);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            completion(response.data);
+        });
         return;
     }
     else
     {
-        [NSTimer scheduledTimerWithTimeInterval:kTSConversionPollInterval target:self selector:@selector(conversionCheck:) userInfo:args repeats:NO];
+        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kTSConversionPollInterval * NSEC_PER_SEC));
+        dispatch_after(popTime, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+            [self conversionCheck:args];
+        });
     }
 }
 
