@@ -4,6 +4,8 @@ Tapstream is an app marketing analytics platform that supports iOS, Android, Mac
 
 With Tapstream, you can measure the conversion rate and lifetime value of any marketing campaign, as well as the value of organic traffic to your website, PR hits, retweets, etc.
 
+In this fork fixed bug with sending synchronous http request in main thread for Objective-C part (objc/Core/TSCore.m - getConversionData method).
+
 ## Integrating the SDK
 
 Downloads and full documentation on usage can be found at the [Tapstream developer portal](http://tapstream.com/developer/).
