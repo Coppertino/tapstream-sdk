@@ -370,7 +370,7 @@
     {
         void(^completion)(NSData *) = [args objectForKey:@"completion"];
         dispatch_async(dispatch_get_main_queue(), ^{
-            completion(response.data);
+            completion(nil);
         });
         return;
     }
