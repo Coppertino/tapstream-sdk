@@ -107,7 +107,7 @@ static void TSLoadStoreKitClasses()
 		if(TSSKPaymentQueue != nil)
 		{
 			self.requestTransactions = [NSMutableDictionary dictionary];
-			[[TSSKPaymentQueue defaultQueue] addTransactionObserver:self];
+			[(SKPaymentQueue *)[TSSKPaymentQueue defaultQueue] addTransactionObserver:self];
 		}
 	}
 	return self;
@@ -184,7 +184,7 @@ static void TSLoadStoreKitClasses()
 {
 	if(TSSKPaymentQueue != nil)
 	{
-		[[TSSKPaymentQueue defaultQueue] removeTransactionObserver:self];
+		[(SKPaymentQueue *)[TSSKPaymentQueue defaultQueue] removeTransactionObserver:self];
 	}
 
 	if(foregroundedEventObserver != nil)
